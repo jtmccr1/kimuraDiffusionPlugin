@@ -9,7 +9,8 @@ public class ISNV {
         this.sample = sample;
         this.freq = freq;
     }
-    final public Sample sample;
+
+    public Sample sample;
     final public double freq;
 
 }

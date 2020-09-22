@@ -1,5 +1,6 @@
 package dr.utilsxml;
 
+import dr.utils.ISNV;
 import dr.utils.Sample;
 import dr.xml.AbstractXMLObjectParser;
 import dr.xml.XMLObject;
@@ -15,10 +16,16 @@ public class SampleParser extends AbstractXMLObjectParser {
         String specID = xo.getStringAttribute("specID");
         double DPI = xo.getDoubleAttribute("DPI");
         double floorLogGcUL= xo.getDoubleAttribute("floorLogGcUL");
-
 //        Case kase = (Case) xo.getChild(Case.class);
-        return new Sample(specID,null,null,DPI,floorLogGcUL,null);
+        Sample sample  = new Sample(specID,null,null,DPI,floorLogGcUL,null);
 
+
+        for (ISNV isnv:xo.getAllChildren(ISNV.class)) {
+            sample.addISNV(isnv);
+            isnv.sample = sample;
+        }
+
+        return sample;
     }
 
     @Override

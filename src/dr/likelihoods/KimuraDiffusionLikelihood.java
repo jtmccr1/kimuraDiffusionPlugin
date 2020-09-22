@@ -4,7 +4,6 @@ import dr.inference.model.AbstractModelLikelihood;
 import dr.inference.model.Model;
 import dr.inference.model.Parameter;
 import dr.inference.model.Variable;
-import dr.math.distributions.BetaDistribution;
 import dr.utils.ISNVtrace;
 import dr.utils.SpecialFunctions;
 
@@ -14,7 +13,9 @@ import java.util.List;
 public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
 
     public KimuraDiffusionLikelihood(String s, List<ISNVtrace> data, Parameter p0, Parameter pt,
-                                     Parameter Ne, Parameter generationTime, boolean conditionOnPolymorphic) {
+                                     Parameter Ne, Parameter generationTime,
+                                     MeasurementErrorProvider measurementErrorProvider,
+                                     boolean conditionOnPolymorphic) {
         super(s);
         this.p0 = p0;
         this.pt = pt;
@@ -41,9 +42,13 @@ public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
         storedLogLikelihood = 0;
 
         this.conditionOnPolymorphic = conditionOnPolymorphic;
-
+        this.measurementErrorProvider = measurementErrorProvider;
     }
-
+    public KimuraDiffusionLikelihood(String s, List<ISNVtrace> data, Parameter p0, Parameter pt,
+                                     Parameter Ne, Parameter generationTime,
+                                     boolean conditionOnPolymorphic){
+        this(s, data, p0, pt, Ne, generationTime, new NoMeasurementError(), conditionOnPolymorphic);
+    }
     @Override
     protected void handleModelChangedEvent(Model model, Object o, int i) {
 
@@ -118,15 +123,15 @@ public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
                 double freq2 = pt.getValue(i);
                 ISNVtrace isnv = data.get(i);
                 //TODO generalize to take more than 2 observations
-                double generations = isnv.getInterval(i) * (24.0 / generationTime.getValue(0));
+                double generations = isnv.getInterval(0) * (24.0 / generationTime.getValue(0));
                 double traceLL;
                 if (freq2 > 0) {
                     traceLL = polymorphicLL(freq1, freq2, generations, Ne.getValue(0));
                 } else {
                     traceLL = fixedLL(freq1,freq2, generations, Ne.getValue(0));
                 }
-                traceLL += measurementError(isnv.getFreq(0), freq1);
-                traceLL += measurementError(isnv.getFreq(1), freq2, isnv.getLogTiter(1));
+                traceLL += measurementErrorProvider.getLogLikelihood( freq1,isnv.getFreq(0));
+                traceLL += measurementErrorProvider.getLogLikelihood( freq2,isnv.getFreq(1), isnv.getLogTiter(1));
 
                 if (conditionOnPolymorphic) {  //account for fact that it could not be 0
                     traceLL -= Math.log(1 - (Math.exp(
@@ -213,40 +218,6 @@ public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
 
         return Math.log(prob);
     }
-    private double measurementError(double observed, double mean, double titer){
-        double a = mean * 503.0; // TODO make this estimable
-        double b = (1 - mean) * 503.0;
-//     No false positives
-        if(mean == 0 && observed != 0){
-            return Double.NEGATIVE_INFINITY;
-        }
-        if(observed == 0){
-            if(mean == 0){
-                return 0;
-            }
-            if(mean > 0){                // prob measured below cut off
-                double probMissed = 0;
-                if (titer!=-1){
-                    if(mean>0.02 && mean<0.05){
-                        probMissed = 1 - 0.15;  // 0.85 sensitivity at 2% in all titers
-                    }else if (mean>0.05 && mean <0.1){
-                        if(titer<5){
-                            probMissed = 1 - 0.7;
-                        }else{
-                            probMissed = 1 - 0.85;
-                        }
-                    }
-                }
-                double probBelowCut = new BetaDistribution(a,b).cdf(0.02);
-                return Math.log(probBelowCut + probMissed);
-            }
-        }
-
-        return  new BetaDistribution(a, b).logPdf(observed);
-    }
-    private double measurementError(double observed, double mean){
-        return measurementError(observed, mean, -1);
-    }
 
 
 
@@ -269,5 +240,6 @@ public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
     private double[] traceLogLikelihoods;
     private double[] storedTraceLogLikelihood;
 
+    private MeasurementErrorProvider measurementErrorProvider;
 }
 

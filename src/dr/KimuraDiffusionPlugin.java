@@ -1,8 +1,10 @@
 package dr;
 
 import dr.app.plugin.Plugin;
+import dr.likelihoodsxml.BetaMeasurementErrorParser;
 import dr.likelihoodsxml.InitialFrequencyLikelihoodParser;
 import dr.likelihoodsxml.KimuraDiffusionLikelihoodParser;
+import dr.likelihoodsxml.NormalMeasurementErrorParser;
 import dr.utilsxml.*;
 import dr.xml.AbstractXMLObjectParser;
 import dr.xml.XMLObjectParser;
@@ -34,6 +36,12 @@ public class KimuraDiffusionPlugin implements Plugin {
 
         AbstractXMLObjectParser kimuraDiffusionLikelihoodParser = new KimuraDiffusionLikelihoodParser();
         parsers.add(kimuraDiffusionLikelihoodParser);
+
+        AbstractXMLObjectParser betaMeasurementErrorParser  = new BetaMeasurementErrorParser();
+        parsers.add(betaMeasurementErrorParser);
+
+        AbstractXMLObjectParser normalMeasurementErrorParser  = new NormalMeasurementErrorParser();
+        parsers.add(normalMeasurementErrorParser);
 
         return parsers;
     }

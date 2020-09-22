@@ -3,6 +3,7 @@ package dr.likelihoodsxml;
 import dr.inference.model.Likelihood;
 import dr.inference.model.Parameter;
 import dr.likelihoods.KimuraDiffusionLikelihood;
+import dr.likelihoods.MeasurementErrorProvider;
 import dr.utils.ISNVtrace;
 import dr.xml.AbstractXMLObjectParser;
 import dr.xml.XMLObject;
@@ -25,7 +26,13 @@ public class KimuraDiffusionLikelihoodParser extends AbstractXMLObjectParser {
         Parameter generationTime = (Parameter) xo.getElementFirstChild("generationTime");
         boolean conditionOnPolymorphic = xo.getBooleanAttribute("conditionOnPolymorphic");
 
+        MeasurementErrorProvider measurementErrorProvider = (MeasurementErrorProvider) xo.getChild(MeasurementErrorProvider.class);
+
+        if(measurementErrorProvider!=null){
+            return new KimuraDiffusionLikelihood(KIMURA_LIKELIHOOD,traces,p0,pt,Ne,generationTime,measurementErrorProvider,conditionOnPolymorphic);
+        }
         return new KimuraDiffusionLikelihood(KIMURA_LIKELIHOOD,traces,p0,pt,Ne,generationTime,conditionOnPolymorphic);
+
 
     }
 

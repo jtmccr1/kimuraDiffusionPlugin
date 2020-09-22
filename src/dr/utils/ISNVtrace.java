@@ -18,7 +18,7 @@ public class ISNVtrace {
     }
 
     public double getInterval(int i) {
-        return observations.get(i).sample.DPI - observations.get(i+1).sample.DPI;
+        return observations.get(i+1).sample.DPI- observations.get(i).sample.DPI;
     }
 
     public double getLogTiter(int i){
