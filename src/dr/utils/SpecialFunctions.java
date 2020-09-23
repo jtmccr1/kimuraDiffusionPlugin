@@ -236,10 +236,10 @@ public class SpecialFunctions {
         if (d < 0.0) {
             /* Try the power series first */
             //TODO actually try it first
-//            y = hyt2f1(a, b, c, x, err);
-//            if (err < ETHRESH) {
-//                return hypdon(err, y);
-//            }
+            y = hyt2f1(a, b, c, x, err);
+            if (err < ETHRESH) {
+                return hypdon(err, y);
+            }
             /* Apply the recurrence if power series fails */
             err = 0.0;
             aid = (int) (2 - id);
@@ -272,7 +272,7 @@ public class SpecialFunctions {
 
 
     private static double hypdiv(){
-        System.out.println("hyp2f1 underflow");
+      System.out.println("hyp2f1 underflow");
         return Double.NEGATIVE_INFINITY;
     }
     private static double  hypdon(double err, double y){

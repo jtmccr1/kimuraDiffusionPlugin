@@ -133,10 +133,10 @@ public class InitialFrequencyLikelihood extends AbstractModelLikelihood {
         for (int i = 0; i < data.size(); i++) {
             if (updated[i]) {
                 double freq = data.get(i).freq;
-                double dpi = data.get(i).sample.DPI;
+                double dpi = Math.max(data.get(i).sample.DPI,1);
                 double generations = (dpi + lag.getParameterValue(0)) * 24 / generationTime.getParameterValue(0);
-                double LL = Math.log(2 * mu.getParameterValue(0) * Ne.getParameterValue(0) / p.getParameterValue(i)) - 2 * Ne.getParameterValue(0) * p.getParameterValue(i) / generations;
-                LL += measurementError(freq, p.getParameterValue(i), data.get(i).sample.floorLogGcUL);
+                double LL = Math.log( (2 * mu.getParameterValue(0) * Ne.getParameterValue(0) / p.getParameterValue(i)) * Math.exp(-2 * Ne.getParameterValue(0) * p.getParameterValue(i) / generations));
+//                LL += measurementError(freq, p.getParameterValue(i), data.get(i).sample.floorLogGcUL);
                 traceLogLikelihoods[i] = LL;
                 updated[i] = false;
             }

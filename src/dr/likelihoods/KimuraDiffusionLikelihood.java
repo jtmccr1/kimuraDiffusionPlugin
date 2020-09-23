@@ -11,10 +11,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
-
+    private final static boolean DEBUG=false;
     public KimuraDiffusionLikelihood(String s, List<ISNVtrace> data, Parameter p0, Parameter pt,
                                      Parameter Ne, Parameter generationTime,
-                                     MeasurementErrorProvider measurementErrorProvider,
                                      boolean conditionOnPolymorphic) {
         super(s);
         this.p0 = p0;
@@ -42,12 +41,6 @@ public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
         storedLogLikelihood = 0;
 
         this.conditionOnPolymorphic = conditionOnPolymorphic;
-        this.measurementErrorProvider = measurementErrorProvider;
-    }
-    public KimuraDiffusionLikelihood(String s, List<ISNVtrace> data, Parameter p0, Parameter pt,
-                                     Parameter Ne, Parameter generationTime,
-                                     boolean conditionOnPolymorphic){
-        this(s, data, p0, pt, Ne, generationTime, new NoMeasurementError(), conditionOnPolymorphic);
     }
     @Override
     protected void handleModelChangedEvent(Model model, Object o, int i) {
@@ -130,8 +123,6 @@ public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
                 } else {
                     traceLL = fixedLL(freq1,freq2, generations, Ne.getValue(0));
                 }
-                traceLL += measurementErrorProvider.getLogLikelihood( freq1,isnv.getFreq(0));
-                traceLL += measurementErrorProvider.getLogLikelihood( freq2,isnv.getFreq(1), isnv.getLogTiter(1));
 
                 if (conditionOnPolymorphic) {  //account for fact that it could not be 0
                     traceLL -= Math.log(1 - (Math.exp(
@@ -142,7 +133,6 @@ public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
                 updated[i] = false;
             }
             logLikelihood += traceLogLikelihoods[i];
-
         }
         likelihoodKnown = true;
     }
@@ -166,15 +156,15 @@ public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
             prob += term;
         }
 
-        if(i == 1000){
-            System.out.println("hit max depth");
-            System.out.println(term);
-        }
+            if (i == 1000) {
+                System.out.println("hit max depth");
+                System.out.println(term);
+            }
 
-        if(prob < 0){ // # underflow at very small probability
-            System.out.println("WARNING: Underflow with Ne of " + ne + "(" + p0 + "->" + pt + ")");
-            return Double.NEGATIVE_INFINITY;
-        }
+            if (prob < 0) { // # underflow at very small probability
+                System.out.println("WARNING: Underflow with Ne of " + ne + "(" + p0 + "->" + pt + ")");
+                return Double.NEGATIVE_INFINITY;
+            }
 
         return Math.log(prob);
     }
@@ -240,6 +230,5 @@ public class KimuraDiffusionLikelihood extends AbstractModelLikelihood {
     private double[] traceLogLikelihoods;
     private double[] storedTraceLogLikelihood;
 
-    private MeasurementErrorProvider measurementErrorProvider;
 }
 
